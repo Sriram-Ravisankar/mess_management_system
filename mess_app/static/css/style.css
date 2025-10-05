@@ -1,0 +1,80 @@
+/*
+// fileName: static/css/style.css
+*/
+
+/* Custom Star Rating CSS removed */
+.rating-group {
+    display: none; 
+}
+
+/* Sidebar Styling Fixes */
+.nav-item {
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border-radius: 0.5rem; /* rounded-lg */
+    font-weight: 500;
+    color: #4b5563; 
+}
+/* FIX: Ensures proper hover and active state */
+.nav-item:hover {
+    background-color: #eef2ff; /* Indigo-50 */
+    color: #4f46e5; /* Indigo-600 */
+}
+.active-module {
+    background-color: #4f46e5 !important; /* Indigo-600 */
+    color: white !important;
+    font-weight: 600;
+}
+/* Style for form fields inside wrappers */
+.form-field-wrapper input, .form-field-wrapper textarea, .form-field-wrapper select {
+     width: 100%;
+     /* FIX: Ensure form fields match look of the UI cards */
+     padding: 0.5rem 0.75rem; 
+     border-radius: 0.5rem; 
+     border: 1px solid #d1d5db;
+}
+
+/* *** AGGRESSIVE CSS FIX FOR FEEDBACK TEXTAREA VISIBILITY *** */
+/* Targets the textarea ONLY within the specific feedback wrapper to force a height */
+#feedback-comment-wrapper textarea {
+    min-height: 100px !important; 
+    box-sizing: border-box !important; 
+}
+/* ******************************************************* */
+
+/* Ensure wide tables maintain minimum width on mobile to enable scrolling */
+.wide-table {
+    min-width: 650px; 
+    /* This width is key: it tells the table to use 100% of the available width 
+       BUT respect the 650px minimum width for scrolling on small screens. */
+    width: 100%; 
+}
+
+/* Aggressive fix for scroll containers: ensures any wrapper around the tables can scroll horizontally */
+.module-content-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* --- GLOBAL RESPONSIVENESS FIXES --- */
+html, body {
+    height: 100%;
+    overflow-x: hidden; 
+}
+
+#app-container {
+    width: 100vw; 
+    overflow-x: hidden; 
+    min-height: 100vh; 
+}
+
+#content-container {
+    width: 100%;
+}
+/* FIX: Force full height for fixed sidebar */
+@media (min-width: 768px) {
+    #sidebar {
+        height: 100vh; /* Fixed height for desktop */
+        top: 0;
+    }
+}

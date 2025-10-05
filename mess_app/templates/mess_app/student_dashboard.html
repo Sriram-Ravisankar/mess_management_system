@@ -1,0 +1,551 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MessNet Student Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+
+    
+</head>
+<body class="bg-gray-100 font-sans antialiased">
+    <div id="app-container" class="flex min-h-screen overflow-hidden">
+
+        <!-- SIDEBAR NAVIGATION SECTION -->
+       
+        <aside id="sidebar" class="w-64 bg-white shadow-xl flex-shrink-0 transition-transform duration-300 ease-in-out transform -translate-x-full md:translate-x-0 fixed top-0 z-50">
+            <div class="p-6">
+                <h1 class="text-3xl font-extrabold text-gray-900 flex items-center">
+                    <span class="text-indigo-600 mr-2">🍽️</span> MessNet
+                </h1>
+                <p class="text-sm text-gray-500 mt-1">Student Portal</p>
+            </div>
+            <nav class="p-4 space-y-2">
+                 <!-- Navigation Items -->
+                <a class="nav-item flex items-center p-3" data-module="dashboard">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard
+                </a>
+                <a class="nav-item flex items-center p-3" data-module="menu">
+                    <i data-lucide="calendar" class="w-5 h-5 mr-3"></i> Weekly Menu
+                </a>
+                <a class="nav-item flex items-center p-3" data-module="leave">
+                    <i data-lucide="calendar-off" class="w-5 h-5 mr-3"></i> Leave Request
+                </a>
+                <a class="nav-item flex items-center p-3" data-module="bills">
+                    <i data-lucide="receipt" class="w-5 h-5 mr-3"></i> Bill Details
+                </a>
+                <a class="nav-item flex items-center p-3" data-module="feedback">
+                    <i data-lucide="message-square" class="w-5 h-5 mr-3"></i> Feedback
+                </a>
+                <a class="nav-item flex items-center p-3" data-module="lost-found">
+                    <i data-lucide="search-check" class="w-5 h-5 mr-3"></i> Lost & Found
+                </a>
+            </nav>
+            <div class="absolute bottom-0 p-4 w-full border-t">
+                <a href="{% url 'logout' %}" class="w-full flex items-center justify-center p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-bold">
+                    <i data-lucide="log-out" class="w-5 h-5 mr-2"></i> Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+
+        <div id="backdrop" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-40 hidden md:hidden"></div>
+
+        <div class="flex-1 flex flex-col w-full min-w-0 md:ml-64"> 
+            
+            <header class="bg-white shadow-sm p-4 flex justify-between items-center flex-shrink-0 sticky top-0 z-50"> 
+                <button id="menu-btn" class="relative z-50 md:hidden p-2 text-gray-600 hover:text-indigo-600 rounded-lg">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+                <div class="text-xl font-semibold text-gray-800" id="header-welcome">
+                    Welcome, {{ profile.first_name|default:profile.username }}
+                </div>
+                <div class="w-6 h-6"></div> 
+            </header>
+
+            <main id="content-container" class="p-4 md:p-8 flex-1 lg:w-full"> 
+                <h2 class="text-3xl font-bold text-gray-800 mb-6" id="page-title"></h2>
+
+                {% if messages %}
+                    <div class="mb-6">
+                        {% for message in messages %}
+                        <div class="p-4 rounded-xl shadow-md {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Dashboard-module -->
+
+                <section id="dashboard-module" class="app-module space-y-8">
+                    
+                    <h2 class="hidden">Student Dashboard</h2>
+
+                    <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-purple-500">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                            <i data-lucide="user" class="w-6 h-6 mr-3 text-purple-600"></i>
+                            My Profile Details
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-gray-700 text-base">
+                            <div class="form-field-wrapper"><span class="font-medium text-gray-500">Name:</span> <p class="text-lg font-bold">{{ profile.first_name }} {{ profile.last_name }}</p></div>
+                            <div class="form-field-wrapper"><span class="font-medium text-gray-500">Hostel ID:</span> <p class="text-lg font-bold">{{ profile.username }}</p></div>
+                            <div class="form-field-wrapper"><span class="font-medium text-gray-500">Department:</span> <p class="text-lg font-bold">{{ profile.department|default:"N/A" }}</p></div>
+                            <div class="form-field-wrapper"><span class="font-medium text-gray-500">Mobile:</span> <p class="text-lg font-bold">{{ profile.mobile_number|default:"N/A" }}</p></div>
+                        </div>
+                    </div>
+
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        
+                        <div id="bill-card" class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-indigo-600 flex flex-col justify-between">
+                            <div class="flex justify-between items-start mb-4">
+                                <h3 class="text-xl font-semibold text-gray-800">Last Mess Bill</h3>
+                                <i data-lucide="receipt" class="w-6 h-6 text-indigo-500"></i>
+                            </div>
+                            
+                            <p class="text-4xl font-extrabold text-indigo-600" id="bill-amount">
+                                {% if latest_bill %}₹{{ latest_bill.total_amount }}{% else %}₹0.00{% endif %}
+                            </p>
+                            <p class="text-sm text-gray-500 mt-2">
+                                Due: <span id="bill-due-date">{{ latest_bill.last_date_of_payment|date:"M d, Y"|default:"N/A" }}</span>
+                                <span class="font-bold {% if latest_bill.status == 'D' %}text-red-600{% else %}text-green-600{% endif %} ml-2" id="bill-status">({{ latest_bill.get_status_display|default:"N/A" }})</span>
+                            </p>
+                        </div>
+                        
+                        <div id="leave-card" class="bg-white p-6 rounded-xl shadow-lg border-l-4 
+                            {% if pending_leaves_count > 0 %}border-amber-500{% elif leave_history.first.status == 'A' %}border-green-500{% else %}border-gray-500{% endif %} flex flex-col justify-between">
+                            <div class="flex justify-between items-start mb-4">
+                                <h3 class="text-xl font-semibold text-gray-800">Leave Status</h3>
+                                <i data-lucide="check-circle" class="w-6 h-6 
+                                    {% if pending_leaves_count > 0 %}text-amber-500{% elif leave_history.first.status == 'A' %}text-green-500{% else %}text-gray-500{% endif %}"></i>
+                            </div>
+                            
+                            <p class="text-xl font-bold text-gray-900" id="leave-summary">
+                                {% if pending_leaves_count > 0 %}
+                                    <span class="text-amber-600">{{ pending_leaves_count }} Pending Requests</span>
+                                {% else %}
+                                    {% if leave_history.first.status == 'A' %}
+                                        <span class="text-green-600">Latest: Approved</span>
+                                    {% elif leave_history.first.status == 'R' %}
+                                        <span class="text-red-600">Latest: Rejected</span>
+                                    {% else %}
+                                        <span class="text-gray-600">All Resolved / No Requests</span>
+                                    {% endif %}
+                                {% endif %}
+                            </p>
+                            
+                            <p class="text-sm text-gray-500 mt-2">
+                                Check the "Leave Request" module for details.
+                            </p>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-emerald-500">
+                            <div class="flex justify-between items-start mb-4">
+                                <h3 class="text-xl font-semibold text-gray-800">Today's Menu: {{ today_day_name }}</h3>
+                                <i data-lucide="fork-and-knife" class="w-6 h-6 text-emerald-500"></i>
+                            </div>
+                            
+                            <div class="space-y-1 text-sm">
+                                {% for meal in menu_today %}
+                                    <p>
+                                        <span class="font-semibold">{{ meal.get_meal_type_display }}:</span> {{ meal.menu_details|truncatechars:35 }}
+                                    </p>
+                                {% empty %}
+                                    <p class="text-gray-500 italic">Menu data is not yet available.</p>
+                                {% endfor %}
+                            </div>
+                            <p class="text-xs text-gray-500 mt-3 border-t pt-2">
+                                Last Updated: {{ latest_menu_update|date:"d M, H:i"|default:"N/A" }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-indigo-700">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <i data-lucide="bell-ring" class="w-5 h-5 mr-2 text-indigo-600"></i>
+                            Latest Notifications
+                        </h3>
+                        <div id="notifications-list" class="space-y-3">
+                            {% for notif in admin_notifications %}
+                            <div class="p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm font-medium">
+                                <span class="text-indigo-600 mr-2">[Admin Alert]</span>
+                                {{ notif.message }}
+                                <span class="text-xs text-gray-500 ml-2 float-right">{{ notif.created_at|date:"d M" }}</span>
+                            </div>
+                            {% empty %}
+                            <p class="text-center text-gray-500 py-2">No active announcements from the administration.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Food-Menu-module -->
+
+                <section id="menu-module" class="app-module space-y-6 hidden">
+                    <h2 class="hidden">Weekly Mess Menu</h2>
+                    
+                    <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-emerald-500">
+                        <div class="flex justify-between items-center mb-4 border-b pb-2">
+                            <h3 class="text-2xl font-semibold text-gray-800">Current Weekly Schedule</h3>
+                            <p class="text-sm text-gray-500">
+                                Last Updated: <span class="font-medium text-gray-700">{{ latest_menu_update|date:"d M, H:i"|default:"N/A" }}</span>
+                            </p>
+                        </div>
+                        
+                        <div class="mb-6 p-4 bg-emerald-50 rounded-lg border border-emerald-200 shadow-inner">
+                            <h4 class="text-lg font-bold text-emerald-800 mb-2">Fixed Meal Timings</h4>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm font-medium">
+                                <div class="text-center md:text-left p-1"> 
+                                    <p class="text-gray-500">Breakfast (B)</p>
+                                    <p class="text-gray-800 font-semibold">7:30 AM - 9:00 AM</p>
+                                </div>
+                                <div class="text-center md:text-left p-1">
+                                    <p class="text-gray-500">Lunch (L)</p>
+                                    <p class="text-gray-800 font-semibold">12:30 PM - 2:00 PM</p>
+                                </div>
+                                <div class="text-center md:text-left p-1">
+                                    <p class="text-gray-500">Dinner (D)</p>
+                                    <p class="text-gray-800 font-semibold">7:30 PM - 9:00 PM</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="module-content-scroll">
+                            <div class="w-full">
+                                <table class="table-auto border border-gray-200 divide-y divide-gray-200 wide-table">
+                                <thead class="bg-emerald-100">
+                                    <tr>
+                                    <th class="p-3 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">Day</th>
+                                    {% for meal_code, meal_name in meal_choices %}
+                                        <th class="p-3 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">{{ meal_name }}</th>
+                                    {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-100">
+                                    {% for day_data in weekly_menu_table %}
+                                    <tr class="{% if day_data.is_today %}bg-yellow-50 font-bold{% else %}hover:bg-gray-50{% endif %}">
+                                    <td class="p-3 whitespace-nowrap text-base font-semibold text-emerald-700">
+                                        {{ day_data.day_name }} 
+                                        {% if day_data.is_today %}
+                                        <span class="text-xs text-red-600 ml-1">(Today)</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="p-3 text-base font-medium text-gray-800">{{ day_data.B }}</td>
+                                    <td class="p-3 text-base font-medium text-gray-800">{{ day_data.L }}</td>
+                                    <td class="p-3 text-base font-medium text-gray-800">{{ day_data.D }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                    <td colspan="4" class="p-4 text-center text-gray-500 italic bg-gray-50">
+                                        The weekly menu has not been uploaded by the admin.
+                                    </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                </table>
+                            </div>
+                        </div>
+                </section>
+
+                <!-- Leave-Request-Module -->
+                
+                <section id="leave-module" class="app-module space-y-6 hidden">
+                    <h2 class="hidden">Leave Request</h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        
+                        <div class="lg:col-span-2 bg-white p-8 rounded-xl shadow-lg border-t-4 border-indigo-500">
+                            <h3 class="text-2xl font-bold text-indigo-700 mb-6 border-b pb-2">New Leave Application</h3>
+                            
+                            <form method="post" action="{% url 'student_dashboard' %}" class="space-y-6">
+                                {% csrf_token %}
+                                <input type="hidden" name="form_action" value="leave">
+                                
+                                {% if leave_form.errors %}
+                                    <div class="p-4 text-sm text-red-800 bg-red-100 rounded-xl font-medium shadow-inner" role="alert">
+                                        <span class="font-semibold">Submission failed!</span> Please correct the following errors for the Leave Request form.
+                                        <ul class="list-disc list-inside mt-2">
+                                            {% for field, errors in leave_form.errors.items %}
+                                                <li>{{ field|capfirst }}: {{ errors|join:", " }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 form-field-wrapper">
+                                    <div class="space-y-2"><label for="id_from_date" class="block text-sm font-medium text-gray-700">{{ leave_form.from_date.label }} <span class="text-red-500">*</span></label>{{ leave_form.from_date }}</div>
+                                    <div class="space-y-2"><label for="id_to_date" class="block text-sm font-medium text-gray-700">{{ leave_form.to_date.label }} <span class="text-red-500">*</span></label>{{ leave_form.to_date }}</div>
+                                </div>
+
+                                <div class="space-y-2 form-field-wrapper">
+                                    <label for="id_reason" class="block text-sm font-medium text-gray-700">{{ leave_form.reason.label }} <span class="text-red-500">* (Mandatory)</span></label>
+                                    {{ leave_form.reason }}
+                                    <p class="mt-1 text-xs text-gray-500">Note: A reason is mandatory for bill adjustment consideration.</p>
+                                </div>
+
+                                <button type="submit" 
+                                        class="w-full py-3 px-4 border border-transparent rounded-lg shadow-md text-lg font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition duration-300">
+                                    Submit Leave Request
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg border border-gray-100 h-fit">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">My Leave History</h3>
+                            
+                            <div class="module-content-scroll">
+                                <table class="min-w-full divide-y divide-gray-200 wide-table">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="p-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Dates</th>
+                                            <th class="p-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        {% for req in leave_history %}
+                                        <tr class="hover:bg-indigo-50 transition duration-150">
+                                            <td class="p-3 text-sm font-medium text-gray-900">
+                                                {{ req.from_date|date:"d M" }} - {{ req.to_date|date:"d M" }}
+                                                <p class="text-xs text-gray-500 mt-0.5" title="{{ req.reason }}">({{ req.reason|truncatechars:25 }})</p>
+                                            </td>
+                                            <td class="p-3">
+                                                {% if req.status == 'A' %}
+                                                    <span class="px-2 py-0.5 inline-flex text-xs leading-5 font-bold rounded-full bg-green-200 text-green-800">Approved</span>
+                                                {% elif req.status == 'R' %}
+                                                    <span class="px-2 py-0.5 inline-flex text-xs leading-5 font-bold rounded-full bg-red-200 text-red-800">Rejected</span>
+                                                {% else %}
+                                                    <span class="px-2 py-0.5 inline-flex text-xs leading-5 font-bold rounded-full bg-yellow-200 text-yellow-800">Pending</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr><td colspan="2" class="p-4 text-center text-gray-500 italic bg-gray-50">No leave requests submitted yet.</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Bill-Module -->
+
+                <section id="bills-module" class="app-module space-y-6 hidden">
+                    <h2 class="hidden">Bill Details</h2>
+                    
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4 border-b pb-2">Mess Bill History</h3>
+                        <div class="module-content-scroll">
+                            <table class="wide-table divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="p-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Billing Month/Year</th>
+                                        <th class="p-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Total Amount</th>
+                                        <th class="p-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Adjustment (Leave)</th>
+                                        <th class="p-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Due Date</th>
+                                        <th class="p-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for bill in bill_history %}
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="p-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ bill.month|date:"F Y" }}</td>
+                                        <td class="p-3 whitespace-nowrap text-sm text-gray-700 font-semibold">₹{{ bill.total_amount }}</td>
+                                        <td class="p-3 whitespace-nowrap text-sm text-gray-500">- ₹{{ bill.adjustment_amount }} ({{ bill.leave_days_approved }} days)</td>
+                                        <td class="p-3 whitespace-nowrap text-sm text-gray-500">{{ bill.last_date_of_payment|date:"d M, Y" }}</td>
+                                        <td class="p-3 whitespace-nowrap">
+                                            {% if bill.status == 'P' %}
+                                                <span class="px-2 py-0.5 inline-flex text-xs leading-5 font-bold rounded-full bg-green-200 text-green-800">Paid</span>
+                                            {% else %}
+                                                <span class="px-2 py-0.5 inline-flex text-xs leading-5 font-bold rounded-full bg-red-200 text-red-800">Due</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="5" class="p-4 text-center text-gray-500 italic bg-gray-50">No bill records found.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Feedback-Module -->
+
+                <section id="feedback-module" class="app-module space-y-6 hidden">
+                    <h2 class="hidden">Feedback & Meal Rating</h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        
+                        <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg h-fit border-t-4 border-amber-500">
+                            <div class="text-center mb-6">
+                                <p class="text-xl font-bold text-gray-700 mb-2">General Mess Feedback</p>
+                                <p class="text-sm text-gray-500 mb-4">For general suggestions *not* tied to a specific meal.</p>
+                            </div>
+
+                            <form id="feedback-form" method="post" action="{% url 'student_dashboard' %}" class="space-y-6">
+                                {% csrf_token %}
+                                <input type="hidden" name="form_action" value="feedback">
+                                
+                                {% if feedback_form.errors and initial_module == 'feedback' and request.POST.form_action == 'feedback' %}
+                                    <div class="p-4 text-sm text-red-800 bg-red-100 rounded-xl font-medium shadow-inner" role="alert">
+                                        <ul class="list-disc list-inside mt-2">{% for field, errors in feedback_form.errors.items %}<li>{{ field|capfirst }}: {{ errors|join:", " }}</li>{% endfor %}</ul>
+                                    </div>
+                                {% endif %}
+
+                                <div id="feedback-comment-wrapper" class="form-field-wrapper"> 
+                                    <label for="id_comment" class="block text-lg font-semibold text-gray-700">Comments / Suggestions</label>
+                                    {{ feedback_form.comment }}
+                                </div>
+                                
+                                <button type="submit" class="w-full py-3 px-4 border border-transparent rounded-lg shadow-md text-lg font-bold text-white bg-amber-600 hover:bg-amber-700 transition duration-150">
+                                    Submit General Feedback
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <div class="lg:col-span-1 space-y-6">
+                            
+                            <div class="bg-indigo-50 p-6 rounded-xl shadow-lg border-l-4 border-indigo-500 flex justify-between items-center">
+                                <div>
+                                    <h3 class="text-xl font-bold text-indigo-800">Today's Average Meal Rating</h3>
+                                    <p class="text-sm text-indigo-600 mt-1">Based on student submissions for {{ today_day_name }} meals.</p>
+                                </div>
+                                <p class="text-5xl font-extrabold text-indigo-600">{{ today_average_rating }}</p>
+                            </div>
+                            
+                            {% if meal_rating_form.errors and initial_module == 'feedback' and request.POST.form_action == 'meal_rating' %}
+                                <div class="p-4 text-sm text-red-800 bg-red-100 rounded-xl font-medium shadow-inner" role="alert">
+                                    <span class="font-semibold">Rating submission failed!</span> Please ensure you have selected a score.
+                                </div>
+                            {% endif %}
+    
+                            {% for meal_code, meal_name in meal_choices %}
+                                {% if meal_code not in rated_meals_today %}
+                                <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+                                    <h3 class="text-xl font-semibold text-gray-800 mb-4">{{ meal_name }} Rating - {{ today_day_name }}</h3>
+                                    <form method="post" action="{% url 'student_dashboard' %}" class="space-y-4">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="form_action" value="meal_rating">
+                                        
+                                        <input type="hidden" name="{{ meal_rating_form.meal_type.name }}" value="{{ meal_code }}">
+                                        
+                                        <div class="space-y-2">
+                                            <label class="block text-sm font-medium text-gray-700">How would you rate this meal?</label>
+                                            <div class="flex flex-wrap justify-between gap-2">
+                                                {% for radio in meal_rating_form.rating_score %}
+                                                    <label class="inline-flex items-center p-2 rounded-lg border-2 border-gray-200 hover:bg-indigo-500 transition duration-150">
+                                                        {{ radio.tag }}
+                                                        <span class="ml-2 text-sm font-medium text-gray-700">{{ radio.choice_label }}</span>
+                                                    </label>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="space-y-2 form-field-wrapper">
+                                            <label for="id_comment" class="block text-sm font-medium text-gray-700">Optional Comments</label>
+                                            <textarea name="{{ meal_rating_form.comment.name }}" id="id_{{ meal_rating_form.comment.name }}_{{ meal_code }}" rows="2" class="form-textarea w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition text-sm" placeholder="Optional: Add your specific feedback here..."></textarea>
+                                        </div>
+    
+                                        <button type="submit" class="w-full py-2 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition duration-150">
+                                            Submit {{ meal_name }} Rating
+                                        </button>
+                                    </form>
+                                </div>
+                                {% else %}
+                                <div class="bg-green-50 p-6 rounded-xl shadow-lg border border-green-200">
+                                    <p class="font-semibold text-green-700 flex items-center">
+                                        <i data-lucide="check-circle" class="w-5 h-5 mr-2"></i>
+                                        You have already rated today's **{{ meal_name }}**. Thank thank you!
+                                    </p>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
+
+                <!-- lost-found-module -->
+                
+                <section id="lost-found-module" class="app-module space-y-6 hidden">
+                    <h2 class="hidden">Lost & Found</h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        
+                        <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg h-fit border-t-4 border-indigo-600">
+                            <h3 class="text-xl font-semibold text-indigo-600 mb-4">Report an Item</h3>
+                            <form id="lost-found-form" method="POST" action="{% url 'student_dashboard' %}" class="space-y-4">
+                                {% csrf_token %}
+                                <input type="hidden" name="form_action" value="lost_found">
+                                
+                                <div class="space-y-2 form-field-wrapper">
+                                    <label for="id_type" class="block text-sm font-medium text-gray-700">Type</label>
+                                    {{ lost_found_form.type }}
+                                </div>
+                                
+                                <div class="space-y-2 form-field-wrapper">
+                                    <label for="id_item_name" class="block text-sm font-medium text-gray-700">Item Name/Title</label>
+                                    {{ lost_found_form.item_name }}
+                                </div>
+                                
+                                <div class="space-y-2 form-field-wrapper">
+                                    <label for="id_date_event" class="block text-sm font-medium text-gray-700">Date Item Lost/Found <span class="text-red-500">*</span></label>
+                                    {{ lost_found_form.date_event }}
+                                </div>
+
+                                <div class="space-y-2 form-field-wrapper">
+                                    <label for="id_place_event" class="block text-sm font-medium text-gray-700">Place Item Lost/Found <span class="text-red-500">*</span></label>
+                                    {{ lost_found_form.place_event }}
+                                </div>
+                                
+                                <div class="space-y-2 form-field-wrapper">
+                                    <label for="id_description" class="block text-sm font-medium text-gray-700">Description</label>
+                                    {{ lost_found_form.description }}
+                                </div>
+                                
+                                <button type="submit" class="w-full py-2 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition duration-150">
+                                    Submit Report
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Reported Items (Admin Approved)</h3>
+                            <div id="lost-found-list" class="space-y-4">
+                                {% for item in lost_found_items %}
+                                <div class="p-4 rounded-lg shadow-sm {% if item.type == 'L' %}bg-red-50 border-red-200{% else %}bg-green-50 border-green-200{% endif %} border">
+                                    <div class="flex justify-between items-start flex-wrap">
+                                        <h4 class="font-bold text-lg text-gray-800">{{ item.item_name }} 
+                                            <span class="text-sm font-medium px-2 py-0.5 rounded-full {% if item.type == 'L' %}bg-red-300 text-red-900{% else %}bg-green-300 text-green-900{% endif %}">{{ item.get_type_display }}</span>
+                                        </h4>
+                                        <span class="text-xs text-gray-500 mt-1 sm:mt-0">Posted by: {{ item.reporter.username }}</span>
+                                    </div>
+                                    <p class="text-sm text-gray-700 mt-1">{{ item.description }}</p>
+                                    <p class="text-xs text-gray-600 mt-2">
+                                        <span class="font-semibold">Event Date:</span> {{ item.date_event|date:"d M, Y" }} | 
+                                        <span class="font-semibold">Place:</span> {{ item.place_event }}
+                                    </p>
+                                </div>
+                                {% empty %}
+                                <p class="text-center text-gray-500 py-4">No approved lost or found items currently listed.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script src="{% static 'js/script.js' %}"></script>
+   
+</body>
+</html>
