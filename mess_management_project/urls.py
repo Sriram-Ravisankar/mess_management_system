@@ -1,6 +1,3 @@
-
-# mess_management_project/urls.py
-
 from django.contrib import admin # type: ignore
 from django.urls import path, include # type: ignore
 

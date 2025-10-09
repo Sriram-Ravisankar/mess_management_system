@@ -8,7 +8,6 @@ class LeaveRequestForm(forms.ModelForm):
         model = LeaveRequest
         fields = ['from_date', 'to_date', 'reason']
         widgets = {
-            # Use HTML5 date input type
             'from_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
             'to_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
             'reason': forms.Textarea(attrs={'rows': 3, 'class': 'form-textarea'}),
@@ -31,15 +30,13 @@ class LeaveRequestForm(forms.ModelForm):
 
         return cleaned_data
 
-# --- Feedback Form (RATING FIELD REMOVED) ---
+# --- Feedback Form  ---
 
 class FeedbackForm(forms.ModelForm):
     class Meta:
         model = Feedback
-        # FIX: Only include the 'comment' field
         fields = ['comment'] 
         widgets = {
-            # Ensure visible rows for the textarea
             'comment': forms.Textarea(attrs={'rows': 4, 'class': 'form-textarea'}),
         }
 
@@ -57,7 +54,6 @@ class LostAndFoundForm(forms.ModelForm):
 # --- Meal Rating Form (NEW) ---
 
 class MealRatingForm(forms.ModelForm):
-    # Overriding fields to use radio buttons for the score and exclude the date/student
     rating_score = forms.ChoiceField(
         choices=MealRating.RATING_CHOICES,
         widget=forms.RadioSelect,
@@ -66,7 +62,6 @@ class MealRatingForm(forms.ModelForm):
 
     class Meta:
         model = MealRating
-        # meal_type is hidden, rating_date is defaulted in view
         fields = ['meal_type', 'rating_score', 'comment']
         widgets = {
             'meal_type': forms.HiddenInput(),

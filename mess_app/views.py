@@ -11,7 +11,7 @@ import calendar
 
 from .models import (
     User, FoodMenu, LeaveRequest, Bill, Feedback, LostAndFound, AdminNotification, MealRating,
-    WEEKDAYS # <--- FIX: Import WEEKDAYS from models module
+    WEEKDAYS
 )
 from .forms import LeaveRequestForm, FeedbackForm, LostAndFoundForm, MealRatingForm
 from .utils import send_whatsapp_notification
@@ -205,12 +205,11 @@ def student_dashboard(request):
     
     response = render(request, 'mess_app/student_dashboard.html', context)
     
-    # --- FIX: Add explicit no-cache headers for definitive cache prevention ---
     response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response['Pragma'] = 'no-cache'
     response['Expires'] = '0'
     
-    return response # <--- Return the modified response object
+    return response 
 
 
 # --- JSON ENDPOINT FOR REAL-TIME POLLING ---

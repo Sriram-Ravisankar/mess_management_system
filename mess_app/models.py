@@ -2,7 +2,8 @@ from django.contrib.auth.models import AbstractUser # type: ignore
 from django.db import models # type: ignore
 import calendar
 from datetime import date
-from decimal import Decimal
+from decimal import Decimal # Import Decimal for financial calculations
+from django.db.models import F, Sum, ExpressionWrapper, fields # type: ignore 
 
 # --- 1. User Management Model for RBAC ---
 
@@ -90,40 +91,75 @@ class Bill(models.Model):
     # Core Financial Fields
     base_rate_per_day = models.DecimalField(max_digits=6, decimal_places=2, default=0.00) 
     total_days_in_month = models.IntegerField(default=30)
-    leave_days_approved = models.IntegerField(default=0) # Days to be deducted
+    # This field is now automatically populated by the save method
+    leave_days_approved = models.IntegerField(default=0) 
     
     # Calculated Fields
     base_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
-    adjustment_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0.00) # Deduction due to leave
+    adjustment_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0.00) 
     total_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
 
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='D')
     last_date_of_payment = models.DateField()
-    
+
+    def get_approved_leave_days(self):
+        """Calculates the total approved leave days for this bill's month."""
+        
+        # 1. Determine the start and end dates of the billing month
+        month_start = self.month.replace(day=1)
+        
+        # Calculate the last day of the month
+        year = self.month.year
+        month = self.month.month
+        last_day = calendar.monthrange(year, month)[1]
+        month_end = self.month.replace(day=last_day)
+
+        # 2. Filter approved leave requests that fall within the billing month
+        approved_leaves = LeaveRequest.objects.filter(
+            student=self.student,
+            status='A', # Only consider approved leaves
+            # Filter requests that start before the month ends and end after the month starts
+            from_date__lte=month_end,
+            to_date__gte=month_start,
+        )
+
+        total_approved_days = 0
+        
+        # 3. Iterate through approved requests and count relevant days (handling partial overlaps)
+        for req in approved_leaves:
+            # Determine the overlap period
+            start_overlap = max(req.from_date, month_start)
+            end_overlap = min(req.to_date, month_end)
+            
+            # Calculate days in the overlap (inclusive)
+            if start_overlap <= end_overlap:
+                total_approved_days += (end_overlap - start_overlap).days + 1
+        
+        return total_approved_days
+
+
     def calculate_amounts(self):
         """Calculates base_amount, adjustment_amount, and total_amount."""
         # Ensure Decimal type for calculations
-        base_rate = Decimal(self.base_rate_per_day) # type: ignore
-        total_days = Decimal(self.total_days_in_month) # type: ignore
-        leave_days = Decimal(self.leave_days_approved) # type: ignore
+        base_rate = Decimal(self.base_rate_per_day)
+        total_days = Decimal(self.total_days_in_month)
+        leave_days = Decimal(self.leave_days_approved) # Automatically populated now
 
-        # 1. Base Amount (Assuming fixed cost for the full month)
         self.base_amount = base_rate * total_days
-
-        # 2. Adjustment Amount (Reduction)
-        # Assuming adjustment is the per-day rate multiplied by approved leave days.
         self.adjustment_amount = base_rate * leave_days
-
-        # 3. Total Amount Due
         self.total_amount = self.base_amount - self.adjustment_amount
         if self.total_amount < 0:
-            self.total_amount = Decimal('0.00') # type: ignore
+            self.total_amount = Decimal('0.00')
 
     def save(self, *args, **kwargs):
-        # Automatically run calculation before saving (on creation/update)
+        """Automatically set leave_days_approved and run calculation before saving."""
+        # 1. Automatically fetch approved leave days
+        self.leave_days_approved = self.get_approved_leave_days()
+        
+        # 2. Automatically run calculation
         self.calculate_amounts()
+        
         super().save(*args, **kwargs)
-
 
     def __str__(self):
         return f"Bill for {self.student.username} - {self.month.strftime('%B %Y')}"
@@ -133,7 +169,6 @@ class Bill(models.Model):
 class Feedback(models.Model):
     # TEMPORARY FIX: Add null=True so Django can proceed with migration
     student = models.ForeignKey(User, on_delete=models.CASCADE, null=True) 
-    # RATING FIELD IS ALREADY REMOVED
     comment = models.TextField()
     submitted_at = models.DateTimeField(auto_now_add=True)
 

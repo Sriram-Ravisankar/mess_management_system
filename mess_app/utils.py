@@ -1,5 +1,3 @@
-# mess_app/utils.py
-
 from twilio.rest import Client # type: ignore
 from django.conf import settings # type: ignore
 import logging

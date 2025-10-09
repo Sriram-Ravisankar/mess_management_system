@@ -1,5 +1,3 @@
-# mess_management_project/settings.py
-
 import os
 from pathlib import Path
 
@@ -30,7 +28,7 @@ INSTALLED_APPS = [
     # 'tailwind', # Optional if using full Tailwind workflow
     
     # My Apps
-    'mess_app', # <--- YOUR APPLICATION
+    'mess_app', # <--- MY APPLICATION
 ]
 
 MIDDLEWARE = [
@@ -48,7 +46,7 @@ ROOT_URLCONF = 'mess_management_project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'], # Global template directory
+        'DIRS': [BASE_DIR / 'templates'], 
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -133,5 +131,7 @@ SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False 
 
 # Ensure cookies work reliably on http://127.0.0.1
-SESSION_COOKIE_SAMESITE = None 
-CSRF_COOKIE_SAMESITE = None
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+# AGGRESSIVE FIX: Ensure the cookie is correctly issued for the local environment
+SESSION_COOKIE_DOMAIN = None

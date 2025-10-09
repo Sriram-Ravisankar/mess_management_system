@@ -193,9 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Form Styling Initialization (Run once after initial DOM is ready) ---
     const formFields = document.querySelectorAll('.form-field-wrapper input:not([type="submit"]):not([type="radio"]):not([type="checkbox"]), .form-field-wrapper textarea, .form-field-wrapper select');
     formFields.forEach(input => {
-        // This ensures Django's form widgets get the consistent styling
         input.classList.add('w-full', 'px-3', 'py-2', 'border', 'border-gray-300', 'rounded-lg', 'shadow-sm', 'focus:ring-indigo-500', 'focus:border-indigo-500', 'transition', 'text-sm');
-        
-        // Note: Specific textarea height fix is now handled by CSS in the <style> block using #feedback-comment-wrapper
+    
     });
 });
