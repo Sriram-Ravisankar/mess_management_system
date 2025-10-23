@@ -1,17 +1,26 @@
-from django.contrib import admin # type: ignore
-from django.contrib.auth.admin import UserAdmin # type: ignore
-from django.contrib import messages # type: ignore
-from django.db import models # type: ignore # FIX: Import models
-from django import forms # type: ignore # FIX: Import forms
+from django.contrib import admin 
+from django.contrib.auth.admin import UserAdmin 
+from django.contrib import messages 
+from django.db import models 
+from django import forms
 from .models import (
     User, FoodMenu, LeaveRequest, Bill, Feedback, LostAndFound, AdminNotification, MealRating
 )
 from .utils import send_whatsapp_notification
 
+
+def get_student_full_name(obj):
+    user = getattr(obj, 'student', getattr(obj, 'reporter', None))
+    if user:
+        return f"{user.first_name} {user.last_name} ({user.username})"
+    return "N/A"
+
+get_student_full_name.short_description = 'Student Name'
+get_student_full_name.admin_order_field = 'student__first_name' 
+
 # --- 1. Custom User Admin for Role Management ---
 
 class CustomUserAdmin(UserAdmin):
-    # Add 'role', 'department', and 'mobile_number' to the user creation form and change form
     fieldsets = UserAdmin.fieldsets + (
         (None, {'fields': ('role', 'department', 'mobile_number')}),
     )
@@ -23,16 +32,15 @@ class CustomUserAdmin(UserAdmin):
 
 admin.site.register(User, CustomUserAdmin)
 
-# --- 2. Food Menu Admin (NEW REGISTRATION/UPDATE) ---
+# --- 2. Food Menu Admin ---
 
 @admin.register(FoodMenu)
 class FoodMenuAdmin(admin.ModelAdmin):
     list_display = ('day_of_week', 'meal_type', 'menu_details', 'updated_at')
     list_filter = ('day_of_week', 'meal_type')
     search_fields = ('menu_details',)
-    list_editable = ('menu_details',) # Allow quick editing of menu details
+    list_editable = ('menu_details',) 
     
-    # FIX: Override the default Textarea for menu_details to reduce its size
     formfield_overrides = {
         models.TextField: {'widget': forms.Textarea(attrs={'rows': 2, 'cols': 40})},
     }
@@ -60,58 +68,103 @@ class FoodMenuAdmin(admin.ModelAdmin):
                 message_body = (
                     f"🍽️ MESS MENU UPDATE - {day_name} {meal_name}\n\n"
                     f"New Menu: {obj.menu_details}\n\n"
-                    "Check the Student Portal for the full weekly menu."
+                    "Check the Portal for the full weekly menu."
                 )
 
                 # Send notification to all students
                 for student in students_to_notify:
-                    # NOTE: Ensure student.mobile_number is pre-pended with 'whatsapp:' 
-                    # and formatted correctly (E.164) for Twilio in settings/utils.
                     recipient = f"whatsapp:{student.mobile_number}" 
                     send_whatsapp_notification(recipient, message_body)
 
                 self.message_user(request, "Menu updated and WhatsApp notifications have been sent to students.", level=messages.SUCCESS)
 
             except Exception as e:
-                # Log error but don't prevent saving
                 self.message_user(request, f"Menu saved, but failed to send some WhatsApp notifications: {e}", level=messages.WARNING)
 
 @admin.register(LeaveRequest)
 class LeaveRequestAdmin(admin.ModelAdmin):
-    list_display = ('student', 'from_date', 'to_date', 'total_leave_days', 'status', 'requested_on')
+    list_display = (get_student_full_name, 'from_date', 'to_date', 'total_leave_days', 'status', 'requested_on')
     list_filter = ('status', 'from_date')
     readonly_fields = ('requested_on',)
 
+
 @admin.register(Feedback)
 class FeedbackAdmin(admin.ModelAdmin):
-    list_display = ('student', 'comment', 'submitted_at')
+    list_display = (get_student_full_name, 'comment', 'submitted_at')
     list_filter = ()
-    search_fields = ('comment', 'student__username')
-    # CRITICAL: Define fields that the Admin can ONLY view, not edit.
+    search_fields = ('comment', 'student__username', 'student__first_name', 'student__last_name')
     readonly_fields = ('student', 'comment', 'submitted_at')
+
 
 @admin.register(Bill)
 class BillAdmin(admin.ModelAdmin):
-    list_display = ('student', 'month', 'total_amount', 'status', 'last_date_of_payment')
+    list_display = ('student_full_name', 'month', 'total_amount', 'status', 'last_date_of_payment')
     list_filter = ('status', 'month')
-    search_fields = ('student__username',)
-    # FIX: The calculated fields AND leave_days_approved are read-only 
-    # as the model's save method now populates them automatically.
-    readonly_fields = ('base_amount', 'adjustment_amount', 'total_amount', 'leave_days_approved')
-    # Explicitly show all fields for administration
+    search_fields = ('student__username', 'student__first_name', 'student__last_name') # Enhanced search
+    actions = ['send_bill_notifications']
+    
+    readonly_fields = ('base_amount', 'adjustment_amount', 'total_amount', 'leave_days_approved', 'current_student_display')
+    
     fields = (
-        'student', 'month', 'base_rate_per_day', 'total_days_in_month',
+        ('student', 'current_student_display'), 
+        'month', 'base_rate_per_day', 'total_days_in_month',
         'leave_days_approved', 'last_date_of_payment', 'status',
         'base_amount', 'adjustment_amount', 'total_amount'
     )
 
+    def student_full_name(self, obj):
+        return f"{obj.student.first_name} {obj.student.last_name} ({obj.student.username})"
+    student_full_name.short_description = 'Student Name (Username)'
+    student_full_name.admin_order_field = 'student__first_name'
+
+    def current_student_display(self, obj):
+        if obj.pk:
+            return f"<strong>{obj.student.first_name} {obj.student.last_name}</strong>"
+        return "Select a student above."
+    current_student_display.short_description = "Selected Student Name"
+    current_student_display.allow_tags = True 
+
+    def send_bill_notifications(self, request, queryset):
+        sent_count = 0
+        failed_recipients = []
+        
+        for bill in queryset:
+            student = bill.student
+            recipient_number = student.mobile_number
+            
+            if recipient_number:
+                recipient = f"whatsapp:{recipient_number}" 
+                message_body = bill.whatsapp_message_body 
+                
+                if send_whatsapp_notification(recipient, message_body):
+                    sent_count += 1
+                else:
+                    failed_recipients.append(student.username)
+            else:
+                failed_recipients.append(student.username)
+
+        if sent_count > 0:
+            self.message_user(request, 
+                              f"Successfully sent Bill Notifications to {sent_count} student(s).", 
+                              level=messages.SUCCESS)
+        
+        if failed_recipients:
+            self.message_user(request, 
+                              f"Failed to send to {len(failed_recipients)} student(s) (missing/invalid number): {', '.join(failed_recipients[:5])}...", 
+                              level=messages.WARNING)
+        
+    send_bill_notifications.short_description = "Send WhatsApp Bill Notifications to selected students"
+
 
 @admin.register(LostAndFound)
 class LostAndFoundAdmin(admin.ModelAdmin):
-    list_display = ('item_name', 'reporter', 'type', 'is_approved', 'date_event', 'posted_on')
+    list_display = ('item_name', get_student_full_name, 'type', 'is_approved', 'date_event', 'posted_on')
     list_filter = ('is_approved', 'type')
     actions = ['approve_selected_items']
     
+    get_student_full_name.admin_order_field = 'reporter__first_name' 
+    get_student_full_name.short_description = 'Reporter'
+
     def approve_selected_items(self, request, queryset):
         unapproved_items = queryset.filter(is_approved=False)
         unapproved_items.update(is_approved=True)
@@ -125,12 +178,14 @@ class AdminNotificationAdmin(admin.ModelAdmin):
     list_filter = ('is_active',)
     search_fields = ('message',)
 
-# --- 7. Meal Rating Admin (NEW REGISTRATION) ---
+# --- 7. Meal Rating Admin ---
 
 @admin.register(MealRating)
 class MealRatingAdmin(admin.ModelAdmin):
-    list_display = ('student', 'rating_date', 'meal_type', 'rating_score', 'submitted_at')
+    list_display = (get_student_full_name, 'rating_date', 'meal_type', 'rating_score', 'submitted_at')
     list_filter = ('rating_date', 'meal_type', 'rating_score')
-    search_fields = ('student__username', 'comment')
-    # MODIFIED: Added all feedback fields to read-only
+    search_fields = ('student__username', 'comment', 'student__first_name', 'student__last_name')
     readonly_fields = ('student', 'rating_date', 'meal_type', 'rating_score', 'comment', 'submitted_at')
+    
+    get_student_full_name.admin_order_field = 'student__first_name' 
+    get_student_full_name.short_description = 'Student Name'

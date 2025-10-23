@@ -1,22 +1,20 @@
-from django.shortcuts import render, redirect, get_object_or_404 # type: ignore
-from django.contrib.auth.decorators import login_required, user_passes_test # type: ignore
-from django.contrib.auth.views import LoginView # type: ignore
-from django.urls import reverse # type: ignore
-from django.db.models import Avg, Max # type: ignore
-from django.contrib import messages # type: ignore
-from django.http import JsonResponse, HttpResponse 
-from django.views.decorators.cache import never_cache
+from django.shortcuts import render, redirect, get_object_or_404 
+from django.contrib.auth.decorators import login_required, user_passes_test 
+from django.contrib.auth.views import LoginView 
+from django.urls import reverse 
+from django.db.models import Avg, Max 
+from django.contrib import messages 
+from django.http import JsonResponse 
+from django.views.decorators.cache import never_cache 
 from datetime import date, datetime
 import calendar
 
 from .models import (
     User, FoodMenu, LeaveRequest, Bill, Feedback, LostAndFound, AdminNotification, MealRating,
-    WEEKDAYS
+    WEEKDAYS 
 )
-from .forms import LeaveRequestForm, FeedbackForm, LostAndFoundForm, MealRatingForm
+from .forms import LeaveRequestForm, FeedbackForm, LostAndFoundForm, MealRatingForm, EmailOrUsernameAuthenticationForm 
 from .utils import send_whatsapp_notification
-
-# --- RBAC Helpers ---
 
 def is_student(user):
     return user.role == User.STUDENT
@@ -25,6 +23,7 @@ def is_student(user):
 
 class MessLoginView(LoginView):
     template_name = 'mess_app/login.html'
+    authentication_form = EmailOrUsernameAuthenticationForm 
     
     def get_success_url(self):
         user = self.request.user
@@ -35,7 +34,7 @@ class MessLoginView(LoginView):
                 return reverse('student_dashboard')
         return super().get_success_url()
 
-# --- Student Dashboard and Module Views (Consolidated SPA Logic) ---
+# --- Student Dashboard and Module Views---
 
 @login_required
 @user_passes_test(is_student)
@@ -48,7 +47,6 @@ def student_dashboard(request):
     if request.method == 'POST':
         form_action = request.POST.get('form_action')
         
-        # BIND POST DATA FOR EACH FORM
         leave_form = LeaveRequestForm(request.POST)
         feedback_form = FeedbackForm(request.POST)
         lost_found_form = LostAndFoundForm(request.POST)
@@ -93,7 +91,7 @@ def student_dashboard(request):
             if meal_rating_form.is_valid():
                 rating = meal_rating_form.save(commit=False)
                 rating.student = user
-                rating.rating_date = date.today() # Enforce today's date
+                rating.rating_date = date.today() 
                 rating.save()
                 messages.success(request, f"{rating.get_meal_type_display()} rating submitted successfully!")
                 return redirect(reverse('student_dashboard') + '?module=feedback') 
@@ -101,7 +99,6 @@ def student_dashboard(request):
                 initial_module = 'feedback' 
                 messages.error(request, "Error submitting meal rating. Please ensure you have selected a score.")
     else:
-        # For GET request (Initial load) - Initialize forms here for GET only
         leave_form = LeaveRequestForm()
         feedback_form = FeedbackForm()
         lost_found_form = LostAndFoundForm()
@@ -120,7 +117,6 @@ def student_dashboard(request):
 
     menu_all = FoodMenu.objects.all().order_by('day_of_week', 'meal_type') 
     
-    # Structured data for the Menu tab (eliminates the need for get_item filter)
     menu_by_day_meal = {}
     for menu_item in menu_all:
         day_key = menu_item.day_of_week 
@@ -129,7 +125,6 @@ def student_dashboard(request):
             menu_by_day_meal[day_key] = {}
         menu_by_day_meal[day_key][meal_key] = menu_item.menu_details
 
-    # Use the imported WEEKDAYS list
     WEEKDAY_CHOICES = WEEKDAYS 
     weekly_menu_table = []
     
@@ -209,7 +204,7 @@ def student_dashboard(request):
     response['Pragma'] = 'no-cache'
     response['Expires'] = '0'
     
-    return response 
+    return response
 
 
 # --- JSON ENDPOINT FOR REAL-TIME POLLING ---
@@ -220,7 +215,8 @@ def data_endpoint(request):
     user = request.user
 
     # Fetch latest bill data
-    latest_bill = Bill.objects.filter(student=user).order_by('-month').first()
+    latest_bill = Bill.objects.filter(student=user).order_where('month') # type: ignore
+    latest_bill = latest_bill.first() if latest_bill else None
     
     # Fetch pending leave count
     pending_leaves_count = LeaveRequest.objects.filter(student=user, status='P').count()
@@ -232,7 +228,6 @@ def data_endpoint(request):
     # Fetch latest notifications
     notifications = AdminNotification.objects.filter(is_active=True).order_by('-created_at')[:3]
 
-    # Prepare JSON response data (Handle empty data safely)
     bill_data = {}
     if latest_bill:
         bill_data = {

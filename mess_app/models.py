@@ -1,11 +1,11 @@
-from django.contrib.auth.models import AbstractUser # type: ignore
-from django.db import models # type: ignore
+from django.contrib.auth.models import AbstractUser
+from django.db import models 
 import calendar
 from datetime import date
-from decimal import Decimal # Import Decimal for financial calculations
-from django.db.models import F, Sum, ExpressionWrapper, fields # type: ignore 
+from decimal import Decimal 
+from django.db.models import F, Sum, ExpressionWrapper, fields 
 
-# --- 1. User Management Model for RBAC ---
+# --- 1. User Management Model---
 
 class User(AbstractUser):
     # Custom choices for user roles
@@ -26,9 +26,8 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
-# --- 2. Food Menu Module (FIXED: Using Calendar for Day Order) ---
+# --- 2. Food Menu Module ---
 
-# Map 0-6 to Day Names (Monday is 0). This is a module-level constant.
 WEEKDAYS = [
     (str(i), day_name) for i, day_name in enumerate(calendar.day_name)
 ]
@@ -40,17 +39,15 @@ class FoodMenu(models.Model):
         ('D', 'Dinner'),
     )
     
-    # Use WEEKDAYS for correct sorting in the Admin dropdown
     day_of_week = models.CharField(max_length=10, choices=WEEKDAYS) 
     meal_type = models.CharField(max_length=1, choices=MEAL_CHOICES)
     menu_details = models.TextField()
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        # Ensures only one entry per meal per day
         unique_together = ('day_of_week', 'meal_type') 
         verbose_name_plural = "Food Menus"
-        ordering = ['day_of_week', 'meal_type'] # Ensure correct order for weekly view
+        ordering = ['day_of_week', 'meal_type'] 
 
     def __str__(self):
         return f"Day {self.day_of_week} - {self.get_meal_type_display()}"
@@ -86,12 +83,11 @@ class Bill(models.Model):
         ('P', 'Paid'),
     )
     student = models.ForeignKey(User, on_delete=models.CASCADE)
-    month = models.DateField() # e.g., date(2025, 9, 1) to track the billing month
+    month = models.DateField() 
     
     # Core Financial Fields
     base_rate_per_day = models.DecimalField(max_digits=6, decimal_places=2, default=0.00) 
     total_days_in_month = models.IntegerField(default=30)
-    # This field is now automatically populated by the save method
     leave_days_approved = models.IntegerField(default=0) 
     
     # Calculated Fields
@@ -105,7 +101,6 @@ class Bill(models.Model):
     def get_approved_leave_days(self):
         """Calculates the total approved leave days for this bill's month."""
         
-        # 1. Determine the start and end dates of the billing month
         month_start = self.month.replace(day=1)
         
         # Calculate the last day of the month
@@ -114,11 +109,10 @@ class Bill(models.Model):
         last_day = calendar.monthrange(year, month)[1]
         month_end = self.month.replace(day=last_day)
 
-        # 2. Filter approved leave requests that fall within the billing month
+        # Filter approved leave requests within the billing month
         approved_leaves = LeaveRequest.objects.filter(
             student=self.student,
-            status='A', # Only consider approved leaves
-            # Filter requests that start before the month ends and end after the month starts
+            status='A', 
             from_date__lte=month_end,
             to_date__gte=month_start,
         )
@@ -127,7 +121,6 @@ class Bill(models.Model):
         
         # 3. Iterate through approved requests and count relevant days (handling partial overlaps)
         for req in approved_leaves:
-            # Determine the overlap period
             start_overlap = max(req.from_date, month_start)
             end_overlap = min(req.to_date, month_end)
             
@@ -140,10 +133,9 @@ class Bill(models.Model):
 
     def calculate_amounts(self):
         """Calculates base_amount, adjustment_amount, and total_amount."""
-        # Ensure Decimal type for calculations
         base_rate = Decimal(self.base_rate_per_day)
         total_days = Decimal(self.total_days_in_month)
-        leave_days = Decimal(self.leave_days_approved) # Automatically populated now
+        leave_days = Decimal(self.leave_days_approved) 
 
         self.base_amount = base_rate * total_days
         self.adjustment_amount = base_rate * leave_days
@@ -153,13 +145,27 @@ class Bill(models.Model):
 
     def save(self, *args, **kwargs):
         """Automatically set leave_days_approved and run calculation before saving."""
-        # 1. Automatically fetch approved leave days
         self.leave_days_approved = self.get_approved_leave_days()
         
-        # 2. Automatically run calculation
+        #  Automatically run calculation
         self.calculate_amounts()
         
         super().save(*args, **kwargs)
+
+    @property
+    def whatsapp_message_body(self):
+        """Generates the full WhatsApp message body for this bill."""
+        status_display = self.get_status_display()
+        
+        message = (
+            f"🔔 MESS BILL ALERT - {self.month.strftime('%B %Y')}\n\n"
+            f"Amount Due: ₹{self.total_amount}\n"
+            f"Status: {status_display}\n"
+            f"Payment Due Date: {self.last_date_of_payment.strftime('%d %b, %Y')}\n\n"
+            f"Leave Adjustment: -₹{self.adjustment_amount} ({self.leave_days_approved} days)\n"
+            "Please pay on time to avoid fines. Check the portal for details."
+        )
+        return message
 
     def __str__(self):
         return f"Bill for {self.student.username} - {self.month.strftime('%B %Y')}"
@@ -167,7 +173,6 @@ class Bill(models.Model):
 # --- 5. Feedback Module ---
 
 class Feedback(models.Model):
-    # TEMPORARY FIX: Add null=True so Django can proceed with migration
     student = models.ForeignKey(User, on_delete=models.CASCADE, null=True) 
     comment = models.TextField()
     submitted_at = models.DateTimeField(auto_now_add=True)
@@ -186,10 +191,10 @@ class LostAndFound(models.Model):
     reporter = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     type = models.CharField(max_length=1, choices=TYPE_CHOICES)
     item_name = models.CharField(max_length=255)
-    date_event = models.DateField() # Date of loss or date item was found
+    date_event = models.DateField() 
     place_event = models.CharField(max_length=255)
     description = models.TextField()
-    is_approved = models.BooleanField(default=False) # Admin approval before visibility
+    is_approved = models.BooleanField(default=False) 
     posted_on = models.DateTimeField(auto_now_add=True)
     
     class Meta:
@@ -204,12 +209,12 @@ class AdminNotification(models.Model):
 
     class Meta:
         verbose_name_plural = "Admin Notifications"
-        ordering = ['-created_at'] # Show latest notifications first
+        ordering = ['-created_at'] 
 
     def __str__(self):
         return f"Notification: {self.message[:50]}..."
         
-# --- 8. Meal Rating Module (NEW) ---
+# --- 8. Meal Rating Module---
 
 class MealRating(models.Model):
     MEAL_CHOICES = (
@@ -229,9 +234,9 @@ class MealRating(models.Model):
 
     student = models.ForeignKey(User, on_delete=models.CASCADE)
     meal_type = models.CharField(max_length=1, choices=MEAL_CHOICES)
-    rating_date = models.DateField(default=date.today) # Date of the meal
+    rating_date = models.DateField(default=date.today) 
     rating_score = models.PositiveSmallIntegerField(choices=RATING_CHOICES)
-    comment = models.TextField(blank=True, null=True) # Optional comment
+    comment = models.TextField(blank=True, null=True) 
     submitted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

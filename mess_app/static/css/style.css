@@ -2,25 +2,26 @@
   display: none;
 }
 
-/* Sidebar Styling Fixes */
+/* Sidebar Styling */
 .nav-item {
   cursor: pointer;
   transition: all 0.2s ease-in-out;
-  border-radius: 0.5rem; /* rounded-lg */
+  border-radius: 0.5rem; 
   font-weight: 500;
   color: #4b5563;
 }
 
 .nav-item:hover {
-  background-color: #eef2ff; /* Indigo-50 */
-  color: #4f46e5; /* Indigo-600 */
+  background-color: #eef2ff; 
+  color: #4f46e5; 
 }
+
 .active-module {
-  background-color: #4f46e5 !important; /* Indigo-600 */
+  background-color: #4f46e5 !important; 
   color: white !important;
   font-weight: 600;
 }
-/* Style for form fields inside wrappers */
+
 .form-field-wrapper input,
 .form-field-wrapper textarea,
 .form-field-wrapper select {
@@ -35,7 +36,6 @@
   box-sizing: border-box !important;
 }
 
-/* Ensure wide tables maintain minimum width on mobile to enable scrolling */
 .wide-table {
   min-width: 650px;
   width: 100%;
@@ -46,7 +46,6 @@
   -webkit-overflow-scrolling: touch;
 }
 
-/* --- GLOBAL RESPONSIVENESS FIXES --- */
 html,
 body {
   height: 100%;

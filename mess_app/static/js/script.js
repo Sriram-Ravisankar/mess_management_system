@@ -1,6 +1,3 @@
-// fileName: static/js/script.js
-
-// Function to render Lucide icons (Defined globally)
 function renderIcons() {
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
@@ -16,13 +13,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const pageTitle = document.getElementById('page-title');
     const backdrop = document.getElementById('backdrop');
 
-    // --- Real-time Polling Elements (New) ---
+    // --- Real-time Polling Elements ---
     const billAmount = document.getElementById('bill-amount');
     const billDueDate = document.getElementById('bill-due-date');
     const billStatus = document.getElementById('bill-status');
     const notificationsList = document.getElementById('notifications-list');
     const leaveSummary = document.getElementById('leave-summary');
-    const leaveCard = document.getElementById('leave-card'); // To update border color
+    const leaveCard = document.getElementById('leave-card'); 
 
 
     // --- Mobile Menu Toggle ---
@@ -72,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // 2. Update Leave Status Card
             const leaveCount = dash.pending_leaves;
-            const latestStatus = dash.latest_leave_status; // Assuming the latest status comes from the JSON endpoint
+            const latestStatus = dash.latest_leave_status;
 
             if (leaveCount > 0) {
                 leaveSummary.innerHTML = `<span class="text-amber-600">${leaveCount} Pending Requests</span>`;
@@ -94,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
             // 3. Update Notifications
-            notificationsList.innerHTML = ''; // Clear existing
+            notificationsList.innerHTML = '';
             if (dash.notifications.length > 0) {
                 dash.notifications.forEach(notif => {
                     const item = document.createElement('div');
@@ -110,7 +107,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 notificationsList.innerHTML = '<p class="text-center text-gray-500 py-2">No active announcements from the administration.</p>';
             }
             
-            // Re-render icons after dynamic content update
             renderIcons();
 
         } catch (error) {
@@ -120,7 +116,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Start polling every 10 seconds (10000 ms)
     setInterval(updateDashboardData, 10000);
-    // Initial call to ensure data loads immediately
     updateDashboardData();
 
 
@@ -136,14 +131,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (activeModule) {
             activeModule.classList.remove('hidden');
             
-            // FIX: Get the H2 content (which is hidden) and set it as the main page title
             const moduleTitleElement = activeModule.querySelector('h2');
             if (moduleTitleElement) {
                 pageTitle.textContent = moduleTitleElement.textContent;
             } 
         }
 
-        // 3. Update active link style (Ensures only one link is active)
+        // 3. Update active link style 
         navLinks.forEach(link => {
             link.classList.remove('active-module');
         });

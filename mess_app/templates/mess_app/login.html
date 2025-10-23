@@ -4,20 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard Login</title>
-    <!-- Use Tailwind CDN for fast, guaranteed styling -->
+    <title>MessNet Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
  
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
 
-    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md border-t-4 border-indigo-600">
         
-        <h2 class="text-3xl font-extrabold text-center text-gray-900 mb-6">
-            Hostel Mess Login
+        <h2 class="text-4xl font-extrabold text-center text-gray-900 mb-6">
+            MessNet Login
         </h2>
-        <p class="text-center text-sm text-gray-500 mb-8">
-            Enter your credentials to access the management system.
+        <p class="text-center text-base text-gray-500 mb-8">
+            Enter your credentials to access the mess management system.
         </p>
         
         <form method="post" action="{% url 'login' %}">
@@ -25,40 +24,47 @@
             
             {% if form.errors %}
                 <div class="p-3 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
-                    <span class="font-medium">Error!</span> Your username and password didn't match. Please check and try again.
+                    <span class="font-medium">Error!</span> Your login attempt failed. Please check your **Username/Email** and password.
                 </div>
             {% endif %}
 
             <div class="mb-5">
-                <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                <label for="{{ form.username.id_for_label }}" class="block text-base font-medium text-gray-700 mb-1">
+                    {{ form.username.label }}
+                </label>
                 <input 
                     type="text" 
                     name="{{ form.username.name }}" 
                     id="{{ form.username.id_for_label }}" 
-                    autocomplete="username"
-                    placeholder="Enter your username"
-                    class="appearance-none block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm transition duration-150" 
+                    placeholder="Enter username or email"
+                    class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-600 focus:border-indigo-600 text-base transition duration-150" 
                     required
+                    {% if form.username.value %}value="{{ form.username.value }}"{% endif %}
                 >
+                {% for error in form.username.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+                {% endfor %}
             </div>
 
             <div class="mb-6">
-                <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <label for="{{ form.password.id_for_label }}" class="block text-base font-medium text-gray-700 mb-1">Password</label>
                 <input 
                     type="password" 
                     name="{{ form.password.name }}" 
                     id="{{ form.password.id_for_label }}" 
-                    autocomplete="current-password"
                     placeholder="Enter your password"
-                    class="appearance-none block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm transition duration-150" 
+                    class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-600 focus:border-indigo-600 text-base transition duration-150" 
                     required
                 >
+                {% for error in form.password.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+                {% endfor %}
             </div>
 
             <input type="hidden" name="next" value="{{ next }}">
             <button 
                 type="submit" 
-                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-lg font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
             >
                 Login
             </button>
