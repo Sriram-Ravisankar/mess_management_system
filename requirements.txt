@@ -1,0 +1,6 @@
+Django==3.2.25
+gunicorn
+twilio
+whitenoise
+psycopg2-binary
+python-decouple
