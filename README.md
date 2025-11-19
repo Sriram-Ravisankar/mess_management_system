@@ -1,87 +1,243 @@
-🍽️ MessNet – web Based Mess Management System
+🍽️ MessNet: web Based Mess Management System for Hostel Administration
 
-A modern, user-friendly Django-based Mess Management System built for colleges and hostels to automate daily mess operations such as menu updates, leave handling, bill management, feedback collection, and lost & found tracking.
+MessNet is a web-based, all-in-one mess automation platform built using Django.
+It modernizes hostel mess workflows by allowing students to manage their menu, leave requests, bills, feedback, and lost & found through an elegant, user-friendly interface.
 
-🖼️ Screenshots
+The system also empowers administrators with full control over menu updates, leave approvals, billing, notifications, and more—all from a centralized backend.
 
-Replace the placeholder links with your actual images (stored in /screenshots/ folder).
+────────────────────────────────────────────────────────────
 
-📌 Student Dashboard
+🎨 Modern UI Experience
 
-📌 Weekly Food Menu
+MessNet ships with a clean, responsive UI featuring:
 
-📌 Leave Request Page
+Sleek layout built with Tailwind CSS
 
-📌 Mess Bill History
+Sidebar navigation with animated Lucide icons
 
-📌 Feedback System
+Dashboard with live updates using real-time polling
 
-📌 Lost & Found Module
+Seamless module switching (Menu, Leave, Bills, Feedback, Lost & Found)
 
-📘 About the Project
+Mobile-first responsive design
 
-MessNet is a complete digital solution designed to replace manual mess operations with a clean, organized, and automated platform.
-Students can easily access all mess-related information while administrators manage everything from a powerful backend panel.
+Toast-like feedback messages
 
-The goal is to:
+Feedback with 1–5 rating
 
-Reduce manual errors
+────────────────────────────────────────────────────────────
 
-Improve communication
-
-Provide transparency
-
-Enhance student convenience
-
-Automate mess billing through leave adjustments
-
-⭐ Core Features
+✨ Core Features
 👨‍🎓 Student Features
 
-✔ Dashboard with profile, leave status, and today’s menu
+● Dashboard Overview
+   
+   ○ Profile info (Name, Hostel ID, Department, Mobile)
+      
+   ○ Latest mess bill & payment status
+      
+   ○ Leave request status
+      
+   ○ Today’s food menu
+      
+   ○ Latest admin notifications
 
-✔ Weekly food menu (Breakfast, Lunch, Dinner)
+● Weekly Food Menu
 
-✔ Leave request with bill adjustment
+● Mess Leave Request
 
-✔ Mess bills (paid/due status)
+   ○ Apply for leave
+      
+   ○ Auto bill adjustment based on approved days
 
-✔ Feedback with 1–5 star rating
+● Mess Bill Tracking
 
-✔ Lost & Found reporting and viewing
+   ○ Monthly bill list with paid/due status
 
-✔ Real-time admin notifications
+● Feedback & Rating System
 
-✔ Mobile-friendly responsive UI
+   ○ 1–5  rating + comment
+
+● Lost & Found Portal
+
+   ○ Submit item reports
+
+   ○ View admin-approved posts
+
+● Real-Time Notification System
 
 🛠️ Admin Features
 
-✔ Manage weekly mess menu
+● Add/update weekly Food Menu
 
-✔ Approve/reject leave requests
+● Approve/Reject Leave Requests
 
-✔ Automatic bill adjustment calculations
+● Auto-generate bill adjustments
 
-✔ Publish notifications
+● Activate/Deactivate Admin Notifications
 
-✔ Approve Lost & Found items
+● Approve Lost & Found entries
 
-✔ View student feedback (read-only for fairness)
+● View feedback (read-only)
 
-✔ Manage student records
+● Manage student profiles
 
-🧰 Technology Stack Used
+────────────────────────────────────────────────────────────
 
-    * [Python] (https://www.python.org/)
-    * [Django] (https://www.djangoproject.com/) (Web Framework)
+🧰 Technology Stack 
+● Backend
+
+   ○ Python
+
+   ○ Django
+    (Web Framework)
+
+   ○ SQLite
+    (Database)
+
+● Frontend
+
+   ○ Tailwind CSS
+
+   ○ Lucide Icons
+
+   ○ JavaScript (ES6)
+
+   ○ HTML5
+    / CSS3
+
+────────────────────────────────────────────────────────────
+
+🖼️ Screenshots
+
+Place screenshots inside a /screenshots folder.
+
+📌 Dashboard
+
+![Dashboard](screenshots/dashboard.png)
+
+📌 Food Menu
+
+![Menu](screenshots/menu.png)
+
+📌 Leave Request
+
+![Leave](screenshots/leave.png)
+
+📌 Bills
+
+![Bills](screenshots/bills.png)
+
+📌 Feedback
+
+![Feedback](screenshots/feedback.png)
+
+📌 Lost & Found
+
+![LostFound](screenshots/lostfound.png)
+
+────────────────────────────────────────────────────────────
+
+🚀 Getting Started
+Prerequisites
+
+Python 3.10+
+
+Git
+
+pip
+
+🔧 Installation (Django Backend)
+1. Clone the Repository
+      git clone https://github.com/your-username/mess-management-system.git
+      cd mess-management-system
+
+2. Create & Activate Virtual Environment
+
+For Windows
+
+python -m venv venv
+.\venv\Scripts\activate
 
 
-Tailwind CSS	Frontend styling	https://tailwindcss.com
+For macOS/Linux
 
-JavaScript ES6	Interactive UI behavior	https://developer.mozilla.org/en-US/docs/Web/JavaScript
+python3 -m venv venv
+source venv/bin/activate
 
-Lucide Icons	Icon library	https://lucide.dev
+3. Install Dependencies
+pip install -r requirements.txt
 
-SQLite 	https://www.sqlite.org
+4. Apply Migrations
+python manage.py makemigrations
+python manage.py migrate
 
-HTML5 / CSS3	Structure & design	https://developer.mozilla.org/en-US/docs/Web/HTML
+5. Create Admin User
+python manage.py createsuperuser
+
+6. Run Server
+python manage.py runserver
+
+Backend is now live at:
+👉 http://127.0.0.1:8000/
+
+👉 Admin Panel: http://127.0.0.1:8000/admin
+
+🧑‍🏫 How to Use
+1. Create an Account
+
+Ask the admin to register a student account or use Django admin to create users.
+
+2. Login to Student Dashboard
+
+See:
+
+Profile details
+
+Today's menu
+
+Bill summary
+
+Leave status
+
+3. Submit Leave Request
+
+Fill the leave request form.
+Admin approves or rejects from the backend.
+
+4. Check Monthly Bills
+
+Bills update with:
+
+Leave deductions
+
+Payment status
+
+5. Give Feedback
+
+Use the star-based rating system to submit mess feedback.
+
+6. Lost & Found
+
+Report missing items or browse admin-approved entries.
+
+7. Admin Workflow
+
+Visit: /admin
+Manage:
+
+Menu
+
+Leaves
+
+Bills
+
+Notifications
+
+Lost & Found
+
+Users
+
+📄 About
+
+MessNet is designed to simplify hostel mess operations through automation, transparency, and a delightful user experience.
