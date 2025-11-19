@@ -71,10 +71,10 @@ Automate mess billing through leave adjustments
 ✔ Manage student records
 
 🧰 Technology Stack Used
-Technology	Purpose	Link
-Python 3	Backend programming	https://www.python.org
 
-Django Framework	MVC web backend	https://www.djangoproject.com
+    * [Python] (https://www.python.org/)
+    * [Django] (https://www.djangoproject.com/) (Web Framework)
+
 
 Tailwind CSS	Frontend styling	https://tailwindcss.com
 
