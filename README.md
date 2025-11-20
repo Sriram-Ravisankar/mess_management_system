@@ -319,25 +319,16 @@ https://messnet.pythonanywhere.com/
 
 ---
 
-### 👨‍💻 **Developer**
+### 👨‍💻 **Developed By**
 **Sriram**
 
 ---
 
 ### 🌐 Connect With Me
-🔗 **LinkedIn:** [Add your link here]  
-🔗 **GitHub:** [Add your link here]  
-🔗 **Portfolio:** [Add your link here]
-
+🔗 **LinkedIn:** [linkedin.com/in/sriram55]  
+🔗 **GitHub:** [https://github.com/Sriram-Ravisankar]  
 ---
 
-### 🛠️ Tech Badges
-
-![Python](https://img.shields.io/badge/Python-3.x-blue?style=for-the-badge)
-![Django](https://img.shields.io/badge/Django-Framework-green?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-orange?style=for-the-badge)
-
----
 
 ### ⭐ Support
 If you like this project, **please give it a star!**
