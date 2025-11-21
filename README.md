@@ -325,12 +325,7 @@ https://messnet.pythonanywhere.com/
 ---
 
 ### 🌐 Connect With Me
-🔗 **LinkedIn:** [linkedin.com/in/sriram55]  
-🔗 **GitHub:** [https://github.com/Sriram-Ravisankar]  
----
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Profile-blue?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/sriram55/)
 
-
-### ⭐ Support
-If you like this project, **please give it a star!**
-
+ 
 </div>
