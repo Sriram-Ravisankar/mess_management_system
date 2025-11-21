@@ -110,27 +110,27 @@ Place screenshots inside a /screenshots folder.
 
 📌 Dashboard
 
-![Dashboard](screenshots/dashboard.png)
+![Dashboard](screenshots/Dashboard.png)
 
 📌 Food Menu
 
-![Menu](screenshots/menu.png)
+![Menu](screenshots/Menu.png)
 
 📌 Leave Request
 
-![Leave](screenshots/leave.png)
+![Leave](screenshots/Leave.png)
 
 📌 Bills
 
-![Bills](screenshots/bills.png)
+![Bills](screenshots/Bills.png)
 
 📌 Feedback
 
-![Feedback](screenshots/feedback.png)
+![Feedback](screenshots/Feedback.png)
 
 📌 Lost & Found
 
-![LostFound](screenshots/lostfound.png)
+![LostFound](screenshots/Lostfound.png)
 
 
 ## 🚀 Getting Started
