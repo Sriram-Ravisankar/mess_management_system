@@ -130,7 +130,7 @@ Place screenshots inside a /screenshots folder.
 
 📌 Lost & Found
 
-![LostFound](screenshots/Lostfound.png)
+![LostFound](screenshots/LostFound.png)
 
 
 ## 🚀 Getting Started
