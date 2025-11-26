@@ -264,7 +264,7 @@ Your request will be shown in My Leave History and admin will approve or reject 
 
 6️⃣ **Submit Mess Feedback**
 
-*Click Feedback and:
+* Click Feedback and:
 
 * Select a rating (1 to 5 stars)
 
@@ -272,7 +272,7 @@ Your request will be shown in My Leave History and admin will approve or reject 
 
 * Submit feedback
 
-T* his helps improve mess service quality.
+This helps improve mess service quality.
 
 7️⃣ **Use the Lost & Found Module**
 
