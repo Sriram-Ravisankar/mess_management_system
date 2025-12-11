@@ -106,7 +106,6 @@ The system also empowers administrators with full control over menu updates, lea
 
 ## 🖼️ Screenshots
 
-Place screenshots inside a /screenshots folder.
 
 📌 Dashboard
 
