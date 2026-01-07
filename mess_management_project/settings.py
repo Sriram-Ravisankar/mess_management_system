@@ -89,10 +89,10 @@ LOGIN_REDIRECT_URL = '/student-dashboard/'
 LOGOUT_REDIRECT_URL = '/login/'
  
 # 3. Twilio Settings 
-TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', 'AC6de10fde6716d650ca14e6e222ae6900')
-TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', 'ab66d2a1a171eb4e31e45ba7c039a64d')
+TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', '')
 # Use the Twilio Sandbox WhatsApp number 
-TWILIO_WHATSAPP_NUMBER = os.environ.get('TWILIO_WHATSAPP_NUMBER', 'whatsapp:+14155238886')
+TWILIO_WHATSAPP_NUMBER = os.environ.get('TWILIO_WHATSAPP_NUMBER', '')
 
 
 # --- Session Control Settings---
