@@ -141,7 +141,7 @@ The system also empowers administrators with full control over menu updates, lea
 **🔧 Installation (Django Backend)**
 1. **Clone the Repository:**
       ```
-      git clone https://github.com/your-username/mess_management_system.git
+      git clone https://github.com/Sriram-Ravisankar/mess_management_system.git
       cd mess-management-system
       ```
       
