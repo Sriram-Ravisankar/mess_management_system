@@ -142,7 +142,7 @@ The system also empowers administrators with full control over menu updates, lea
 1. **Clone the Repository:**
       ```
       git clone https://github.com/Sriram-Ravisankar/mess_management_system.git
-      cd mess-management-system
+      cd mess_management_system
       ```
       
 
