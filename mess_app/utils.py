@@ -5,24 +5,27 @@ import logging
 logger = logging.getLogger(__name__)
 
 def send_whatsapp_notification(recipient_number, message_body):
-    
-    # Check if Twilio settings are configured before attempting to send
+    """
+    Sends a WhatsApp message via Twilio.
+    Returns True if successful, False otherwise.
+    """
     if not all([settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN, settings.TWILIO_WHATSAPP_NUMBER]):
-        logger.warning("Twilio API credentials are missing. Skipping WhatsApp notification.")
+        logger.warning("Twilio API credentials are missing.")
         return False
 
     try:
         client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-
-        # NOTE: recipient_number must be prepended with 'whatsapp:' if sending via WhatsApp
+        
+        # Ensure the 'whatsapp:' prefix is added here so models.py doesn't need to worry about it
+        formatted_to = f"whatsapp:{recipient_number}"
         
         message = client.messages.create(
-            from_=settings.TWILIO_WHATSAPP_NUMBER,
+            from_=settings.TWILIO_WHATSAPP_NUMBER, 
             body=message_body,
-            to=recipient_number # e.g. 'whatsapp:+1234567890'
+            to=formatted_to 
         )
-        logger.info(f"WhatsApp message sent to {recipient_number}. SID: {message.sid}")
+        print(f"✅ Success! SID: {message.sid}")
         return True
     except Exception as e:
-        logger.error(f"Failed to send WhatsApp message to {recipient_number}: {e}")
+        print(f"❌ Twilio Error: {e}")
         return False

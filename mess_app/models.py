@@ -76,40 +76,38 @@ class LeaveRequest(models.Model):
         return 0
 
 # --- 4. Bill Details Module ---
-
 class Bill(models.Model):
     STATUS_CHOICES = (
         ('D', 'Due'),
         ('P', 'Paid'),
     )
-    student = models.ForeignKey(User, on_delete=models.CASCADE)
-    month = models.DateField() 
+    student = models.ForeignKey('User', on_delete=models.CASCADE)
+    month = models.DateField()
     
-    # Core Financial Fields
-    base_rate_per_day = models.DecimalField(max_digits=6, decimal_places=2, default=0.00) 
+    # Financial Inputs
+    base_rate_per_day = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
     total_days_in_month = models.IntegerField(default=30)
-    leave_days_approved = models.IntegerField(default=0) 
+    leave_days_approved = models.IntegerField(default=0)
     
     # Calculated Fields
     base_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
-    adjustment_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0.00) 
+    adjustment_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
     total_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
 
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='D')
     last_date_of_payment = models.DateField()
 
+    # --- Verification & Automation Field ---
+    notification_sent = models.BooleanField(default=False)
+
     def get_approved_leave_days(self):
-        """Calculates the total approved leave days for this bill's month."""
-        
+        """Calculates total approved leave days for the specific month."""
         month_start = self.month.replace(day=1)
-        
-        # Calculate the last day of the month
-        year = self.month.year
-        month = self.month.month
-        last_day = calendar.monthrange(year, month)[1]
+        _, last_day = calendar.monthrange(self.month.year, self.month.month)
         month_end = self.month.replace(day=last_day)
 
-        # Filter approved leave requests within the billing month
+        # Pulling LeaveRequest locally to avoid circular imports if necessary
+        from .models import LeaveRequest
         approved_leaves = LeaveRequest.objects.filter(
             student=self.student,
             status='A', 
@@ -117,59 +115,71 @@ class Bill(models.Model):
             to_date__gte=month_start,
         )
 
-        total_approved_days = 0
-        
-        # 3. Iterate through approved requests and count relevant days (handling partial overlaps)
+        total_days = 0
         for req in approved_leaves:
-            start_overlap = max(req.from_date, month_start)
-            end_overlap = min(req.to_date, month_end)
-            
-            # Calculate days in the overlap (inclusive)
-            if start_overlap <= end_overlap:
-                total_approved_days += (end_overlap - start_overlap).days + 1
-        
-        return total_approved_days
-
+            overlap_start = max(req.from_date, month_start)
+            overlap_end = min(req.to_date, month_end)
+            if overlap_start <= overlap_end:
+                total_days += (overlap_end - overlap_start).days + 1
+        return total_days
 
     def calculate_amounts(self):
-        """Calculates base_amount, adjustment_amount, and total_amount."""
+        """Calculates financial totals."""
         base_rate = Decimal(self.base_rate_per_day)
         total_days = Decimal(self.total_days_in_month)
         leave_days = Decimal(self.leave_days_approved) 
 
         self.base_amount = base_rate * total_days
         self.adjustment_amount = base_rate * leave_days
-        self.total_amount = self.base_amount - self.adjustment_amount
-        if self.total_amount < 0:
-            self.total_amount = Decimal('0.00')
+        self.total_amount = max(self.base_amount - self.adjustment_amount, Decimal('0.00'))
 
     def save(self, *args, **kwargs):
-        """Automatically set leave_days_approved and run calculation before saving."""
+        """
+        Triggers every time a Bill is created or updated.
+        Calculates values and sends automatic WhatsApp if status is Due.
+        """
+        # 1. Update calculations
         self.leave_days_approved = self.get_approved_leave_days()
-        
-        #  Automatically run calculation
         self.calculate_amounts()
         
+        # 2. Save record to Database first
         super().save(*args, **kwargs)
+        
+        # 3. AUTOMATIC TRIGGER LOGIC
+        # Conditions: Status is 'Due' AND message hasn't been sent yet
+        if self.status == 'D' and not self.notification_sent:
+            if self.student.mobile_number:
+                from .utils import send_whatsapp_notification
+                
+                # Try sending the message
+                success = send_whatsapp_notification(self.student.mobile_number, self.whatsapp_message_body)
+                
+                if success:
+                    # Update the database flag so the cross turns into a checkmark
+                    # Using .update() prevents the save() method from looping
+                    self.__class__.objects.filter(pk=self.pk).update(notification_sent=True)
+            else:
+                # Log to terminal if number is missing
+                print(f"⚠️ Notification skipped for {self.student.username}: No mobile number found.")
 
     @property
     def whatsapp_message_body(self):
-        """Generates the full WhatsApp message body for this bill."""
-        status_display = self.get_status_display()
+        """The exact message format requested."""
+        month_name = self.month.strftime('%B %Y')
+        due_date = self.last_date_of_payment.strftime('%d %b, %Y')
         
-        message = (
-            f"🔔 MESS BILL ALERT - {self.month.strftime('%B %Y')}\n\n"
+        return (
+            f"🔔 MESS BILL ALERT - {month_name}\n\n"
             f"Amount Due: ₹{self.total_amount}\n"
-            f"Status: {status_display}\n"
-            f"Payment Due Date: {self.last_date_of_payment.strftime('%d %b, %Y')}\n\n"
+            f"Status: {self.get_status_display()}\n"
+            f"Payment Due Date: {due_date}\n\n"
             f"Leave Adjustment: -₹{self.adjustment_amount} ({self.leave_days_approved} days)\n"
             "Please pay on time to avoid fines. Check the portal for details."
         )
-        return message
 
     def __str__(self):
         return f"Bill for {self.student.username} - {self.month.strftime('%B %Y')}"
-
+    
 # --- 5. Feedback Module ---
 
 class Feedback(models.Model):

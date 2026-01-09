@@ -73,8 +73,8 @@ class FoodMenuAdmin(admin.ModelAdmin):
 
                 # Send notification to all students
                 for student in students_to_notify:
-                    recipient = f"whatsapp:{student.mobile_number}" 
-                    send_whatsapp_notification(recipient, message_body)
+                    # recipient = f"whatsapp:{student.mobile_number}" 
+                    send_whatsapp_notification(student.mobile_number, message_body)
 
                 self.message_user(request, "Menu updated and WhatsApp notifications have been sent to students.", level=messages.SUCCESS)
 
@@ -98,25 +98,29 @@ class FeedbackAdmin(admin.ModelAdmin):
 
 @admin.register(Bill)
 class BillAdmin(admin.ModelAdmin):
-    list_display = ('student_full_name', 'month', 'total_amount', 'status', 'last_date_of_payment')
-    list_filter = ('status', 'month')
-    search_fields = ('student__username', 'student__first_name', 'student__last_name') # Enhanced search
-    actions = ['send_bill_notifications']
+    # Display the notification status (Check/Cross) in the list view
+    list_display = ('student_full_name', 'month', 'total_amount', 'status', 'last_date_of_payment', 'notification_sent')
     
-    readonly_fields = ('base_amount', 'adjustment_amount', 'total_amount', 'leave_days_approved', 'current_student_display')
+    # Filters to help find unsent or due bills
+    list_filter = ('status', 'month', 'notification_sent')
+    search_fields = ('student__username', 'student__first_name', 'student__last_name')
+    
+    # Add the manual resend action to the dropdown menu
+    actions = ['resend_bill_notifications']
+    
+    # Protect calculated fields from manual editing
+    readonly_fields = ('base_amount', 'adjustment_amount', 'total_amount', 'leave_days_approved', 'notification_sent', 'current_student_display')
     
     fields = (
         ('student', 'current_student_display'), 
         'month', 'base_rate_per_day', 'total_days_in_month',
         'leave_days_approved', 'last_date_of_payment', 'status',
-        'base_amount', 'adjustment_amount', 'total_amount'
+        'base_amount', 'adjustment_amount', 'total_amount', 'notification_sent'
     )
 
     def student_full_name(self, obj):
         return f"{obj.student.first_name} {obj.student.last_name} ({obj.student.username})"
-    student_full_name.short_description = 'Student Name (Username)'
-    student_full_name.admin_order_field = 'student__first_name'
-
+    
     def current_student_display(self, obj):
         if obj.pk:
             return f"<strong>{obj.student.first_name} {obj.student.last_name}</strong>"
@@ -124,36 +128,21 @@ class BillAdmin(admin.ModelAdmin):
     current_student_display.short_description = "Selected Student Name"
     current_student_display.allow_tags = True 
 
-    def send_bill_notifications(self, request, queryset):
+    def resend_bill_notifications(self, request, queryset):
+        """
+        Action to manually resend notifications.
+        Resets the flag and saves the model to trigger the automatic logic in models.py.
+        """
         sent_count = 0
-        failed_recipients = []
-        
         for bill in queryset:
-            student = bill.student
-            recipient_number = student.mobile_number
-            
-            if recipient_number:
-                recipient = f"whatsapp:{recipient_number}" 
-                message_body = bill.whatsapp_message_body 
-                
-                if send_whatsapp_notification(recipient, message_body):
-                    sent_count += 1
-                else:
-                    failed_recipients.append(student.username)
-            else:
-                failed_recipients.append(student.username)
-
-        if sent_count > 0:
-            self.message_user(request, 
-                              f"Successfully sent Bill Notifications to {sent_count} student(s).", 
-                              level=messages.SUCCESS)
+            # Setting this to False allows the models.py save() logic to fire again
+            bill.notification_sent = False
+            bill.save() 
+            sent_count += 1
         
-        if failed_recipients:
-            self.message_user(request, 
-                              f"Failed to send to {len(failed_recipients)} student(s) (missing/invalid number): {', '.join(failed_recipients[:5])}...", 
-                              level=messages.WARNING)
-        
-    send_bill_notifications.short_description = "Send WhatsApp Bill Notifications to selected students"
+        self.message_user(request, f"Successfully resending notification for {sent_count} bill(s).", messages.SUCCESS)
+    
+    resend_bill_notifications.short_description = "Resend WhatsApp Notifications to selected bills"
 
 
 @admin.register(LostAndFound)

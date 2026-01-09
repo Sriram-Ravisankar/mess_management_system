@@ -73,22 +73,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (leaveCount > 0) {
                 leaveSummary.innerHTML = `<span class="text-amber-600">${leaveCount} Pending Requests</span>`;
-                leaveCard.classList.remove('border-green-500', 'border-gray-500');
+                leaveCard.classList.remove('border-green-500', 'border-red-500');
                 leaveCard.classList.add('border-amber-500');
             } else if (latestStatus === 'A') {
                 leaveSummary.innerHTML = `<span class="text-green-600">Latest: Approved</span>`;
-                leaveCard.classList.remove('border-amber-500', 'border-gray-500');
+                leaveCard.classList.remove('border-amber-500', 'border-red-500');
                 leaveCard.classList.add('border-green-500');
             } else if (latestStatus === 'R') {
                 leaveSummary.innerHTML = `<span class="text-red-600">Latest: Rejected</span>`;
                 leaveCard.classList.remove('border-amber-500', 'border-green-500');
-                leaveCard.classList.add('border-gray-500'); 
+                leaveCard.classList.add('border-red-500'); 
             } else {
                 leaveSummary.innerHTML = `<span class="text-gray-600">All Resolved / No Requests</span>`;
                 leaveCard.classList.remove('border-amber-500', 'border-green-500');
                 leaveCard.classList.add('border-gray-500');
             }
-
 
             // 3. Update Notifications
             notificationsList.innerHTML = '';
@@ -189,5 +188,22 @@ document.addEventListener('DOMContentLoaded', function() {
     formFields.forEach(input => {
         input.classList.add('w-full', 'px-3', 'py-2', 'border', 'border-gray-300', 'rounded-lg', 'shadow-sm', 'focus:ring-indigo-500', 'focus:border-indigo-500', 'transition', 'text-sm');
     
+    });
+});
+
+// Auto-dismiss Django Messages
+document.addEventListener('DOMContentLoaded', function() {
+    const messages = document.querySelectorAll('#django-messages-container > div, .mb-6 > div');
+
+    messages.forEach(function(msg) {
+        setTimeout(function() {
+            msg.style.transition = "opacity 1s ease, transform 1s ease";
+            msg.style.opacity = "0";
+            msg.style.transform = "translateY(-10px)"; // Optional: adds a slight slide-up effect
+
+            setTimeout(function() {
+                msg.remove();
+            }, 1000);
+        }, 3000); // 3 seconds visible
     });
 });

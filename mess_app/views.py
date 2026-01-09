@@ -208,41 +208,43 @@ def student_dashboard(request):
 
 
 # --- JSON ENDPOINT FOR REAL-TIME POLLING ---
-
+# In your views.py, update the data_endpoint function:
 @login_required
 @user_passes_test(is_student)
+@never_cache
 def data_endpoint(request):
     user = request.user
 
-    # Fetch latest bill data
-    latest_bill = Bill.objects.filter(student=user).order_where('month') # type: ignore
-    latest_bill = latest_bill.first() if latest_bill else None
+    # 1. FIX: Changed 'order_where' to 'order_by' and used .first() 
+    # This ensures a single object is returned for the JSON response.
+    latest_bill = Bill.objects.filter(student=user).order_by('-month').first()
+    pending_leaves_count = LeaveRequest.objects.filter(student=user, status='P').count()
+    latest_leave = LeaveRequest.objects.filter(student=user).order_by('-requested_on').first()
     
-    # Fetch pending leave count
+    # 2. Fetch data for other dashboard elements
     pending_leaves_count = LeaveRequest.objects.filter(student=user, status='P').count()
 
-    # Get latest leave status (for the polling JS logic)
+    # 3. FIX: Safely handle cases where no leave requests exist
     latest_leave = LeaveRequest.objects.filter(student=user).order_by('-requested_on').first()
     latest_leave_status_code = latest_leave.status if latest_leave else 'N'
 
-    # Fetch latest notifications
+    # 4. Fetch notifications
     notifications = AdminNotification.objects.filter(is_active=True).order_by('-created_at')[:3]
 
     bill_data = {}
     if latest_bill:
         bill_data = {
             'amount': str(latest_bill.total_amount),
+            # 5. FIX: Added safety check for empty date fields to prevent strftime crash
             'due_date': latest_bill.last_date_of_payment.strftime('%b %d, %Y') if latest_bill.last_date_of_payment else 'N/A',
             'status': latest_bill.get_status_display(),
             'status_code': latest_bill.status,
         }
 
-    notifications_data = []
-    for notif in notifications:
-        notifications_data.append({
-            'message': notif.message,
-            'date': notif.created_at.strftime('%d %b'),
-        })
+    notifications_data = [
+        {'message': notif.message, 'date': notif.created_at.strftime('%d %b')}
+        for notif in notifications
+    ]
 
     return JsonResponse({
         'status': 'success',
@@ -253,3 +255,7 @@ def data_endpoint(request):
             'notifications': notifications_data,
         }
     })
+
+# Manual override for extra safety
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+    return response

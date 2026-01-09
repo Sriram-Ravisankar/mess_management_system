@@ -73,15 +73,14 @@
             <main id="content-container" class="p-4 md:p-8 flex-1 lg:w-full"> 
                 <h2 class="text-3xl font-bold text-gray-800 mb-6" id="page-title"></h2>
 
-                {% if messages %}
-                    <div class="mb-6">
-                        {% for message in messages %}
-                        <div class="p-4 rounded-xl shadow-md {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
-                            {{ message }}
-                        </div>
-                        {% endfor %}
+            {% if messages %}
+                <div id="django-messages-container" class="mb-6 space-y-2"> {% for message in messages %}
+                    <div class="p-4 rounded-xl shadow-md {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                        {{ message }}
                     </div>
-                {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
 
                 <!-- Dashboard-module -->
 
@@ -150,7 +149,7 @@
                         <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-emerald-500">
                             <div class="flex justify-between items-start mb-4">
                                 <h3 class="text-xl font-semibold text-gray-800">Today's Menu: {{ today_day_name }}</h3>
-                                <i data-lucide="fork-and-knife" class="w-6 h-6 text-emerald-500"></i>
+                                <i data-lucide="utensils" class="w-6 h-6 text-emerald-500"></i>
                             </div>
                             
                             <div class="space-y-1 text-sm">
